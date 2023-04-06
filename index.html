@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<!--[if lte IE 8]>         <html lang="en-US" class="lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html lang="en-US"> <!--<![endif]-->
+
+<head>
+    <meta charset="utf-8">
+
+    <title>Real Virtual Tour</title>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.4.0/dist/tf.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.js"></script>
+    <script src="web/triangles.js"></script>
+    <script src="web/fer2013.js"></script>
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+
+    <style>
+        .animate__animated.animate__fadeIn {
+            --animate-duration: 1s;
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                -webkit-transform: translate3d(0,20px,0);
+                transform: translate3d(0,20px,0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            0% {
+                opacity: 0;
+                -webkit-transform: translate3d(0,-20px,0);
+                transform: translate3d(0,-20px,0);
+            }
+        }
+
+        @keyframes fadeOutUp {
+            100% {
+                opacity: 0;
+                -webkit-transform: translate3d(0,-20px,0);
+                transform: translate3d(0,-20px,0);
+            }
+        }
+        
+        body {
+            font-family: 'Robot', sans-serif;
+        }
+    </style>
+
+</head>
+
+<body data-logged-in="false" data-pageid="530" data-lazy-load-media="false" data-resource-optimizations="true"
+    class="fsLiveMode fsHasHeader fsHasLeftBanner fsHasMenu fsHasFooter fsHasOneColumnLayout fsSection338 fsAccountBarTop fsHasTheme2">
+    <main style="max-width: 500px; margin-left: auto; margin-right: auto;">
+        <h1 style="color: #c1282e; font-family: 'Roboto', sans-serif; font-weight: bold;" class="animate__animated animate__fadeIn">Real Virtual Tour</h1>
+        <div>
+            <div>
+                <p style="font-family: 'Roboto', sans-serif;"><span class="animate__animated animate__fadeIn">
+                    This project aims to create an interactive virtual tour of SFS campus. The project overall outlines a map of the whole campus, where each section of the building can be clicked on to see the interior of the rooms. Due to security reasons, the total view of the school can not be shown. We have picked sample images of rooms to be displayed in this virtual tour. The images of the rooms were filmed using a 360 degree camera to show every aspect of the room. 
+                    <br /><br/>
+                    This tour requires access to the user's camera to collect the user's emotions when viewing a room. This will only be used for analysis and the faces will not be recorded nor used in any other aspects. Furthermore, the amount of time spent looking at each room will be recorded for the same reason. 
+                    <br /><br />
+                    This project displays the campus to outsiders and collects data among users regarding each section of the room. This project not only aims to recreate the entire campus virtually to strengthen the interaction of the online tourists, but also aims to know which subjects are the student or parent's main interest.
+
+                </span></p>
+            </div>
+        </div>
+        <div class="animate__animated animate__fadeInUp">
+            <img style="width: 500px;" src="images/school.png" usemap="#image-map">
+
+            <map name="image-map">
+                <area alt="School" title="School" href="javascript:openArea('Science')" coords="0,30,200,400" shape="rect">
+                <area alt="School2" title="School2" href="javascript:openArea('Math')" coords="300,100,500,400" shape="rect">
+            </map>
+        </div>
+        <div style="display: none" id="image-area">
+            <h2 style="font-family: 'Roboto', sans-serif; color: #c1282e" id="image-area-title">School</h2>
+            <img style="width: 500px;" id="image-area-image" src="https://resources.finalsite.net/images/f_auto,q_auto/v1616287963/seoulforeignorg/h023gg4yiieznqajxisf/colmbus.jpg" />
+            <div
+                style="display: flex; justify-content: space-around; margin-top: 10px;"
+            >
+                <button id="question" type="button" class="btn btn-primary btn-sm" style="background-color: white; border-color: #c1282e; color: #c1282e;">
+                    I have questions
+                </button>
+                <button id="interested" type="button" class="btn btn-primary btn-sm" style="background-color: white; border-color: #c1282e; color: #c1282e;">
+                    I'm interested
+                </button>
+                <button id="not-interested" type="button" class="btn btn-primary btn-sm" style="background-color: white; border-color: #c1282e; color: #c1282e;">
+                    I'm not interested
+                </button>
+                <input type="hidden" value="" id="specificValue" />
+            </div>
+            <div style="text-align: center;">
+                <div style="margin-right: 0px; margin-top: 10px;">
+                    <button type="button" class="btn btn-primary btn-sm" style="background-color: #c1282e; border-color: #c1282e" onclick="hideArea()">HIDE</button>
+                </div>
+            </div>
+        </div>
+
+        <video style="display: none" id="video" autoplay></video>
+        <canvas id="canvas" width="0px" height="0px"></canvas>
+        <div id="emotion_text"></div>
+    </main>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Survey</h1>
+            </div>
+            <div class="modal-body">
+                <div class="container-flud">
+                    <div class="row">
+                        <div class="mb-3 col-6">
+                            <input type="text" class="form-control" placeholder="First Name" aria-label="First Name">
+                        </div>
+                        <div class="mb-3 col-6">
+                            <input type="text" class="form-control" placeholder="Last Name" aria-label="Last Name">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="mb-3 col-12">
+                            <input type="email" class="form-control" placeholder="Email" aria-label="Email">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-group mb-3 col-12">
+                            <label class="input-group-text" for="inputGroupSelect01">Grade</label>
+                            <select class="form-select" id="inputGroupSelect01">
+                            <option selected>Choose...</option>
+                            <option value="Pre-K">Pre-K</option>
+                            <option value="1">1st Grade</option>
+                            <option value="2">2nd Grade</option>
+                            <option value="3">3rd Grade</option>
+                            <option value="4">4th Grade</option>
+                            <option value="5">5th Grade</option>
+                            <option value="6">6th Grade</option>
+                            <option value="7">7th Grade</option>
+                            <option value="8">8th Grade</option>
+                            <option value="9">9th Grade</option>
+                            <option value="10">10th Grade</option>
+                            <option value="11">11th Grade</option>
+                            <option value="12">12th Grade</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
+                        <label class="form-check-label" for="inlineCheckbox1">I am a student</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2">
+                        <label class="form-check-label" for="inlineCheckbox2">I am a parent</label>
+                    </div>
+                    <div class="row" style="margin-top: 10px;">
+                        <div class="mb-3 col-12">
+                            <input type="text" class="form-control" placeholder="Current Location" aria-label="Current Location">
+                        </div>
+                    </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="skipSurvey">Skip</button>
+            <button type="button" class="btn btn-primary" id="submitSurvey">Submit</button>
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Modal 2 -->
+    <div class="modal fade" id="myModal2" tabindex="-1" aria-labelledby="exampleModalLabel2" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel2">Video</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center;">
+                    <video style="display: none" id="video2" autoplay></video>
+                    <canvas id="canvas2" width="400px" height="300px"></canvas>
+                    <div style="font-weight: bold" id="emotion_text2"></div>
+                </div>
+                <div>
+                    Accessing your video allows us to make an accurate analysis of how interested you are to a specific room. The video will analyze your facial expression
+                    and predict your emotions. The video will not be recorded at any time during your use of this website.
+                </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Block</button>
+            <button type="button" class="btn btn-primary">Allow</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const myModal = new bootstrap.Modal(document.getElementById('myModal'), {backdrop: 'static', keyboard: false});
+            myModal.show();
+            var questionClicked = false;
+            var interestedClicked = false;
+            var notInterestedClicked = false;
+
+            $('#skipSurvey').on('click', function() {
+                myModal.hide();
+                const myModal2 = new bootstrap.Modal(document.getElementById('myModal2'), {backdrop: 'static', keyboard: false});
+                myModal2.show();
+            })
+
+            $('#submitSurvey').on('click', function() {
+                myModal.hide();
+                const myModal2 = new bootstrap.Modal(document.getElementById('myModal2'), {backdrop: 'static', keyboard: false});
+                myModal2.show();
+            })
+
+            $('#question').on('click', function() {
+                if(questionClicked)
+                {
+                    $('#question').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+                    $('#specificValue').val('');
+                }
+                else
+                {
+                    questionClicked = true;
+                    $('#question').attr('style', 'background-color: #c1282e; color: white; border-color: #c1282e');
+                    $('#interested').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+                    $('#not-interested').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+                    $('#specificValue').val('question');
+                }
+            })
+
+            $('#interested').on('click', function() {
+                if(interestedClicked)
+                {
+                    $('#interested').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+                    $('#specificValue').val('');
+                }
+                else
+                {
+                    interestedClicked = true;
+                    $('#interested').attr('style', 'background-color: #c1282e; color: white; border-color: #c1282e');
+                    $('#question').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+                    $('#not-interested').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+                    $('#specificValue').val('interested');
+                }
+            })
+
+            $('#not-interested').on('click', function() {
+                if(notInterestedClicked)
+                {
+                    $('#not-interested').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+                    $('#specificValue').val('');
+                }
+                else
+                {
+                    notInterestedClicked = true;
+                    $('#not-interested').attr('style', 'background-color: #c1282e; color: white; border-color: #c1282e');
+                    $('#question').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+                    $('#interested').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+                    $('#specificValue').val('not-interested');
+                }
+            })
+        })
+        
+    </script>
+</body>
+<!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script> -->
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-analytics.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-firestore.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyDk1kiwVWfGoFhAHnOxjsC7UFPDbOBY7ZQ",
+      authDomain: "emotions-eed09.firebaseapp.com",
+      projectId: "emotions-eed09",
+      storageBucket: "emotions-eed09.appspot.com",
+      messagingSenderId: "1049641432331",
+      appId: "1:1049641432331:web:27aaadc3b861cd37521e0e",
+      measurementId: "G-0XS216NHPM"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // try {
+    //     const docRef = await addDoc(collection(db, "data"), {
+    //         temp: 'test'
+    //     })
+    // } catch(e) {
+    //     console.error("Error adding document: ", e)
+    // }
+
+    window.startTime;
+    window.endtime;
+
+    window.openArea = async function openArea(areaType) {
+        var curState = $('#image-area').css('display');
+        $('#image-area').css({
+            'display': 'block',
+            'margin-top': '50px'
+        })
+        if(curState == 'none')
+        {
+            window.startTime = Date.now();
+            const element = document.querySelector('#image-area');
+
+            element.addEventListener('animationend', () => {
+                $('#image-area').css('display', 'block');
+            });
+            element.classList.remove('animate__fadeOutUp');
+            element.classList.add('animate__animated', 'animate__fadeInDown');
+        }
+        else if(curState == 'block')
+        {
+            const element = document.querySelector('#image-area');
+            element.classList.remove('animate__fadeInDown');
+            element.classList.add('animate__fadeIn');
+            element.addEventListener('animationend', () => {
+                element.classList.remove('animate__fadeIn');
+            });
+            window.endTime = Date.now();
+            var end = window.endTime;
+            var start = window.startTime;
+            var finalTime = (end-start) / 1000;
+            let area = $('#image-area-title').html();
+            var emotion = $('#emotion_text').html();
+            var specific = $('#specificValue').val();
+            try {
+                const docRef = await addDoc(collection(db, "data"), {
+                    time_spent: finalTime,
+                    area: area,
+                    emotion: emotion,
+                    specific: specific
+                });
+                
+            } catch(e) {
+                console.error("Error adding document: ", e)
+            }
+        }
+
+        
+        if(areaType == 'Science') {
+            $('#image-area-title').html('Science');
+            $('#image-area-image').attr('src', 'https://resources.finalsite.net/images/f_auto,q_auto/v1616287963/seoulforeignorg/h023gg4yiieznqajxisf/colmbus.jpg')
+        }
+        else if(areaType == 'Math') {
+            $('#image-area-title').html('Math')
+            $('#image-area-image').attr('src', 'https://resources.finalsite.net/images/f_auto,q_auto,t_image_size_6/v1654055871/seoulforeignorg/ycqwnwwvhxpiv6ui6qrd/IMG_-9742.jpg')
+        }
+
+
+        $('#question').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+        $('#interested').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+        $('#not-interested').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+    }
+
+    window.hideArea = async function hideArea() {
+        $('#question').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+        $('#interested').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+        $('#not-interested').attr('style', 'background-color: white; color: #c1282e; border-color: #c1282e');
+        window.endTime = Date.now();
+        var end = window.endTime;
+        var start = window.startTime;
+        var finalTime = (end-start) / 1000;
+        let area = $('#image-area-title').html();
+        var emotion = $('#emotion_text').html();
+        var specific = $('#specificValue').val();
+        try {
+            const docRef = await addDoc(collection(db, "data"), {
+                time_spent: finalTime,
+                area: area,
+                emotion: emotion,
+                specific: specific
+            });
+            
+        } catch(e) {
+            console.error("Error adding document: ", e)
+        }
+        const element = document.querySelector('#image-area');
+        element.classList.remove('animate__fadeInDown');
+        element.classList.add('animate__animated', 'animate__fadeOutUp');
+        element.addEventListener('animationend', () => {
+            $('#image-area').css('display', 'none');
+        });
+    }
+
+  </script>
+<script src="script.js"></script>
+</html>
